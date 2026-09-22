@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movie List</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr) auto;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        form input,
+        form button {
+            font-size: 16px;
+            padding: 8px;
+        }
+
+        #message {
+            min-height: 20px;
+        }
+
+        #loadMoviesButton {
+            display: block;
+            margin: 0 0 16px;
+            padding: 12px 22px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+ 
+        #movieSearchInput {
+            font-size: 16px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+       
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 18px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd; 
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Movie Collection</h1>
+
+        <h2>Add Movie</h2>
+        <form id="movieForm">
+            <input type="text" id="title" placeholder="Title" required>
+            <input type="text" id="genre" placeholder="Genre" required>
+            <input type="number" id="year" placeholder="Year" required>
+            <button type="submit">Add Movie</button>
+        </form>
+        <p id="message"></p>
+
+        <h1>Movies</h1>
+        <button type="button" id="loadMoviesButton">Load Movies</button>
+        <input type="text" id="movieSearchInput" onkeyup="searchTable()" placeholder="Search ID, title, genre, or year...">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Genre</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+            <tbody id="movietable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadMovies() {
+            const response = await fetch("/api/movies");
+            const movies = await response.json();
+            const table = document.getElementById("movietable");
+
+            table.innerHTML = "";
+
+            movies.forEach(movie => {
+                const row = document.createElement("tr");
+
+                const idCell = document.createElement("td");
+                idCell.textContent = movie.id;
+                const nameCell = document.createElement("td");
+                nameCell.textContent = movie.title;
+                const genreCell = document.createElement("td");
+                genreCell.textContent = movie.genre;
+                const yearCell = document.createElement("td");
+                yearCell.textContent = movie.year;
+                row.appendChild(idCell);
+                row.appendChild(nameCell);
+                row.appendChild(genreCell);
+                row.appendChild(yearCell);
+                table.appendChild(row);
+            });
+        }
+
+        document.getElementById("loadMoviesButton").addEventListener("click", loadMovies);
+
+        document.getElementById("movieForm").addEventListener("submit", async event => {
+            event.preventDefault();
+
+            const response = await fetch("/api/movies", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: document.getElementById("title").value,
+                    genre: document.getElementById("genre").value,
+                    year: document.getElementById("year").value
+                })
+            });
+
+            const result = await response.json();
+            const message = document.getElementById("message");
+            message.textContent = response.ok ? "Movie added successfully" : result.message;
+
+            if (response.ok) {
+                event.target.reset();
+            }
+        });
+
+         function searchTable() {
+            const filter = document.getElementById("movieSearchInput").value.toLowerCase();
+            
+            document.querySelectorAll("#movietable tr").forEach(row => {
+           
+                const matches = row.textContent.toLowerCase().includes(filter);
+                
+                row.style.display = matches ? "" : "none";
+            });
+    }
+
+        window.onload = loadMovies;
+    </script>
+
+
+</body>
+</html>
