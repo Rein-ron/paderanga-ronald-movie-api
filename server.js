@@ -1,5 +1,4 @@
 const express = require("express");
-const path = require("path");
 
 const app = express();
 
@@ -75,7 +74,7 @@ app.post("/api/movies", (req, res) => {
     res.status(201).json(movie);
 });
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
     console.log(`server running at http://localhost:${PORT}`);
